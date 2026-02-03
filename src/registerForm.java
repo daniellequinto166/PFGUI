@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.JOptionPane;
-import config.DBConnection;
+import config.config;
 import java.sql.SQLException;
 
 
@@ -23,19 +23,46 @@ public class registerForm extends javax.swing.JFrame {
 });
     
     }
-      private void confirmMouseClicked(java.awt.event.MouseEvent evt) {                                     
-      
-     String fullname = r_fname1.getText().trim();
-     String username = r_fname1.getText().trim();
-     String email = r_email.getText().trim();
-     String phonenumber = r_number.getText().trim();
-     String password = String.valueOf(r_pass1.getPassword()).trim();
+     private void confirmMouseClicked(java.awt.event.MouseEvent evt) {
+
+    String fullname = r_fname1.getText().trim();
+    String username = r_uname.getText().trim();
+    String email = r_email.getText().trim();
+    String phonenumber = r_number.getText().trim();
+    String password = String.valueOf(r_pass1.getPassword()).trim();
+    String role = jComboBox1.getSelectedItem().toString();
+
+    // ✅ EMPTY FIELD VALIDATION
+    if (fullname.isEmpty() || username.isEmpty() || email.isEmpty()
+            || phonenumber.isEmpty() || password.isEmpty()) {
+
+        JOptionPane.showMessageDialog(this,
+                "All fields are required.",
+                "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
     try {
-        Connection con = DBConnection.getConnection();
+        Connection con = config.getConnection();
 
-        String sql = "INSERT INTO user (fullname, username, email, phonenumber, password, role) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        // ✅ CHECK EXISTING EMAIL ONLY
+        String checkEmail = "SELECT id FROM user WHERE email = ?";
+        PreparedStatement psEmail = con.prepareStatement(checkEmail);
+        psEmail.setString(1, email);
+        ResultSet rsEmail = psEmail.executeQuery();
+
+        if (rsEmail.next()) {
+            JOptionPane.showMessageDialog(this,
+                    "Email already exists.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // ✅ INSERT USER (DEFAULT STATUS = INACTIVE)
+        String sql = "INSERT INTO user (fullname, username, email, phonenumber, password, role, status) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, fullname);
@@ -43,29 +70,31 @@ public class registerForm extends javax.swing.JFrame {
         ps.setString(3, email);
         ps.setString(4, phonenumber);
         ps.setString(5, password);
-        ps.setString(6, jComboBox1.getSelectedItem().toString());
+        ps.setString(6, role);
+        ps.setString(7, "inactive"); // ✅ inactive by default
 
         ps.executeUpdate();
 
         JOptionPane.showMessageDialog(this,
-            "Registration successful!",
-            "Success",
-            JOptionPane.INFORMATION_MESSAGE);
+                "Registration successful! Please wait for account activation.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
 
-        
+        // back to login
         loginForm lf = new loginForm();
         lf.setVisible(true);
         lf.pack();
         lf.setLocationRelativeTo(null);
         this.dispose();
 
-    } catch (SQLException e) {
+    } catch (Exception e) {
         JOptionPane.showMessageDialog(this,
-            "Database Error: " + e.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }
+
 
 
     /**

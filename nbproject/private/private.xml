@@ -6,8 +6,9 @@
             <file>file:/C:/Users/acer/Music/c/src/registerForm.java</file>
             <file>file:/C:/Users/acer/Music/c/src/loginForm.java</file>
             <file>file:/C:/Users/acer/Music/c/src/landing.java</file>
-            <file>file:/C:/Users/acer/Music/c/src/dashboard.java</file>
-            <file>file:/C:/Users/acer/Music/c/src/config/DBConnection.java</file>
+            <file>file:/C:/Users/acer/Music/c/src/config/config.java</file>
+            <file>file:/C:/Users/acer/Music/c/src/admindashboard/admindashboard.java</file>
+            <file>file:/C:/Users/acer/Music/c/src/userdashboard/userdashboard.java</file>
         </group>
     </open-files>
 </project-private>

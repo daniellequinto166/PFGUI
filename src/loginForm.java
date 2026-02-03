@@ -1,10 +1,12 @@
 
-import config.DBConnection;
+
+import config.config;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.swing.JOptionPane;
-
+import userdashboard.userdashboard;
+import admindashboard.admindashboard;
 
 public class loginForm extends javax.swing.JFrame {
 
@@ -13,6 +15,8 @@ public class loginForm extends javax.swing.JFrame {
      */
     public loginForm() {
         initComponents();
+       
+        
          login.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         login.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -21,39 +25,77 @@ public class loginForm extends javax.swing.JFrame {
         });
 
     }
-          private void loginMouseClicked(java.awt.event.MouseEvent evt) {
+    private void loginMouseClicked(java.awt.event.MouseEvent evt) {
     String username = u_username.getText().trim();
     String password = String.valueOf(u_password.getPassword()).trim();
 
-    if(username.isEmpty() || password.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Enter username and password", "Warning", JOptionPane.WARNING_MESSAGE);
+    if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+                "Enter username and password",
+                "Warning",
+                JOptionPane.WARNING_MESSAGE);
         return;
     }
 
     try {
-        Connection con = DBConnection.getConnection(); // See DBConnection below
-        String sql = "SELECT * FROM user WHERE username=? AND password=?";
+        Connection con = config.getConnection();
+        String sql = "SELECT role FROM user WHERE username=? AND password=?";
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, username);
         ps.setString(2, password);
+
         ResultSet rs = ps.executeQuery();
 
-        if(rs.next()) {
-            JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Open dashboard or next form
-            dashboard df = new dashboard(); // Replace with your dashboard
-            df.setVisible(true);
-            df.pack();
-            df.setLocationRelativeTo(null);
+        if (rs.next()) {
+            String role = rs.getString("role");
+
+            // Debug print
+            System.out.println("DEBUG: ROLE FROM DB = [" + role + "]");
+
+            if (role != null && !role.isEmpty()) {
+                role = role.trim().toLowerCase(); // trim spaces & lowercase
+            } else {
+                role = ""; // fallback
+            }
+
+            // ROLE-BASED REDIRECT
+            if ("admin".equals(role)) {
+                admindashboard adminDash = new admindashboard();
+                adminDash.setVisible(true);
+                adminDash.pack();
+                adminDash.setLocationRelativeTo(null);
+            } else if ("client".equals(role)) {  // ✅ change from "user" to "client"
+                userdashboard clientDash = new userdashboard(); // or rename to clientdashboard
+                clientDash.setVisible(true);
+                clientDash.pack();
+                clientDash.setLocationRelativeTo(null);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Account role is invalid. Contact admin.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             this.dispose();
+
         } else {
-            JOptionPane.showMessageDialog(this, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Invalid username or password",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
-    } catch(Exception e) {
-        JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this,
+                "Database error: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }
+
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -136,11 +178,15 @@ public class loginForm extends javax.swing.JFrame {
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(login, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(login, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(login, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(login, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jPanel3.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 420, 150, 60));
